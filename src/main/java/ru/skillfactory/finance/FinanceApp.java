@@ -6,6 +6,9 @@ import ru.skillfactory.finance.model.Wallet;
 import ru.skillfactory.finance.service.UserService;
 import ru.skillfactory.finance.service.WalletService;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class FinanceApp {
@@ -218,7 +221,7 @@ public class FinanceApp {
             Wallet wallet = walletOpt.get();
             double totalIncome = 0;
             double totalExpenses = 0;
-            System.out.println("Статистика:");
+            StringBuilder statistics = new StringBuilder("Статистика:\n");
             // Получаем уникальные категории из транзакций
             Map<String, Double> incomeByCategory = new HashMap<>();
             Map<String, Double> expensesByCategory = new HashMap<>();
@@ -237,12 +240,12 @@ public class FinanceApp {
                     .mapToDouble(Double::doubleValue)
                     .sum();
 
-            System.out.println("Общий доход: " + totalIncome);
+            statistics.append("Общий доход: ").append(totalIncome).append("\n");
 
             // Выводим доходы по категориям
-            System.out.println("Доходы по категориям:");
+            statistics.append("Доходы по категориям:\n");
             for (Map.Entry<String, Double> entry : incomeByCategory.entrySet()) {
-                System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+                statistics.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
             }
 
             // Суммируем общие расходы
@@ -250,24 +253,28 @@ public class FinanceApp {
                     .mapToDouble(Double::doubleValue)
                     .sum();
 
-            System.out.println("Общие расходы: " + totalExpenses);
+            statistics.append("Общие расходы: ").append(totalExpenses).append("\n");
 
             // Выводим расходы по категориям
-            System.out.println("Расходы по категориям:");
+            statistics.append("Расходы по категориям:\n");
             for (Map.Entry<String, Double> entry : expensesByCategory.entrySet()) {
-                System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+                statistics.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
             }
 
             // Выводим бюджет по категориям и оставшийся бюджет
-            System.out.println("Бюджет по категориям:");
+            statistics.append("Бюджет по категориям:\n");
             for (Map.Entry<String, Double> entry : wallet.getBudgets().entrySet()) {
                 String category = entry.getKey();
                 double budget = entry.getValue();
                 double spent = expensesByCategory.getOrDefault(category, 0.0);
                 double remainingBudget = budget - spent;
 
-                System.out.println("  " + category + ": " + budget + ", Оставшийся бюджет: " + remainingBudget);
+                statistics.append("  ").append(category).append(": ").append(budget)
+                        .append(", Оставшийся бюджет: ").append(remainingBudget).append("\n");
             }
+
+            // Сохраняем статистику в файл
+            saveStatisticsToFile(statistics.toString());
         } else {
             System.out.println("Кошелек не найден");
         }
@@ -368,6 +375,16 @@ public class FinanceApp {
             System.out.println("Кошелек не найден");
         }
         financialManagement();
+    }
+
+    private void saveStatisticsToFile(String statistics) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("statistics.txt", true))) {
+            writer.write(statistics);
+            writer.newLine();
+            System.out.println("Статистика успешно сохранена в файл statistics.txt.");
+        } catch (IOException e) {
+            System.out.println("Ошибка при сохранении статистики в файл: " + e.getMessage());
+        }
     }
 
     private double getDoubleInput() {
