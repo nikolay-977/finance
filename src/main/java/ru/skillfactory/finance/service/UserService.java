@@ -1,7 +1,6 @@
 package ru.skillfactory.finance.service;
 
 import ru.skillfactory.finance.model.User;
-import ru.skillfactory.finance.model.Wallet;
 
 import java.io.*;
 import java.util.ArrayList;

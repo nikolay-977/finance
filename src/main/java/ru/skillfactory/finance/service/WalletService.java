@@ -3,7 +3,10 @@ package ru.skillfactory.finance.service;
 import ru.skillfactory.finance.model.Wallet;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class WalletService {
     private List<Wallet> walletList = new ArrayList<>();

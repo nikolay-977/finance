@@ -1,11 +1,7 @@
 package ru.skillfactory.finance.model;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class Wallet implements Serializable {
     private UUID userId;
@@ -45,8 +41,16 @@ public class Wallet implements Serializable {
         return budgets;
     }
 
+    public void setBudgets(Map<String, Double> budgets) {
+        this.budgets = budgets;
+    }
+
     public List<Transaction> getTransactions() {
         return transactions;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
     }
 
     private void checkBudgetLimit(Transaction transaction) {
@@ -75,13 +79,5 @@ public class Wallet implements Serializable {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
-    }
-
-    public void setTransactions(List<Transaction> transactions) {
-        this.transactions = transactions;
-    }
-
-    public void setBudgets(Map<String, Double> budgets) {
-        this.budgets = budgets;
     }
 }

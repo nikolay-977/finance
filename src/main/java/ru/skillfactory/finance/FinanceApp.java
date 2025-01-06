@@ -22,6 +22,11 @@ public class FinanceApp {
         walletService.loadWalletsFromFile("wallets.ser");
     }
 
+    public static void main(String[] args) {
+        FinanceApp app = new FinanceApp();
+        app.start();
+    }
+
     public void start() {
         this.scanner = new Scanner(System.in);
         mainMenu();
@@ -415,10 +420,5 @@ public class FinanceApp {
                 System.out.println("Пароль не может быть пустым и должен содержать только буквы, цифры, тире, нижние подчеркивания. Пожалуйста, введите пароль:");
             }
         }
-    }
-
-    public static void main(String[] args) {
-        FinanceApp app = new FinanceApp();
-        app.start();
     }
 }
