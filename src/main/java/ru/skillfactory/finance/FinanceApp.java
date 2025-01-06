@@ -405,7 +405,7 @@ public class FinanceApp {
             if (username != null && !username.trim().isEmpty() && username.matches(usernameRegex)) {
                 return username;
             } else {
-                System.out.println("Имя пользователя не может быть пустым и должно содержать только буквы, цифры, тире, нижние подчеркивания и пробелы. Пожалуйста, введите имя пользователя:");
+                System.out.println("Логин не может быть пустым и должно содержать только буквы, цифры, тире, нижние подчеркивания и пробелы. Пожалуйста, введите логин:");
             }
         }
     }
