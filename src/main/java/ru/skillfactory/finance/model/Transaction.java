@@ -1,8 +1,9 @@
 package ru.skillfactory.finance.model;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Transaction {
+public class Transaction implements Serializable {
     private UUID id;
     private String category;
     private double amount;

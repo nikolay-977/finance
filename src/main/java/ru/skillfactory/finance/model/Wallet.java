@@ -68,4 +68,20 @@ public class Wallet implements Serializable {
             System.out.println("Оповещение: Общие расходы превышают доходы.");
         }
     }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public void setTransactions(List<Transaction> transactions) {
+        this.transactions = transactions;
+    }
+
+    public void setBudgets(Map<String, Double> budgets) {
+        this.budgets = budgets;
+    }
 }

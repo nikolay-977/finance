@@ -3,24 +3,29 @@ package ru.skillfactory.finance.service;
 import ru.skillfactory.finance.model.Wallet;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class WalletService {
-    private Map<UUID, Wallet> wallets;
+    private List<Wallet> walletList = new ArrayList<>();
 
     public WalletService() {
-        wallets = new HashMap<>();
+        walletList = new ArrayList<>();
     }
 
-    public Wallet getWallet(UUID userId) {
-        return wallets.computeIfAbsent(userId, Wallet::new);
+    public Optional<Wallet> getWalletByUserId(UUID userId) {
+        return walletList.stream()
+                .filter(wallet -> wallet.getUserId().equals(userId))
+                .findFirst();
+    }
+
+    public boolean addWallet(Wallet wallet) {
+        return walletList.add(wallet);
     }
 
     public void saveWalletsToFile(String filePath) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
-            oos.writeObject(wallets);
+            oos.writeObject(walletList);
+            System.out.println("Количество сохраненных кошельков: " + walletList.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -31,7 +36,8 @@ public class WalletService {
         File file = new File(filePath);
         if (file.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
-                wallets = (Map<UUID, Wallet>) ois.readObject();
+                walletList = (List<Wallet>) ois.readObject();
+                System.out.println("Количество загруженных кошельков: " + walletList.size());
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

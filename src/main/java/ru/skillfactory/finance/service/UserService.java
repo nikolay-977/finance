@@ -11,17 +11,14 @@ import java.util.UUID;
 
 public class UserService {
     private List<User> userList = new ArrayList<>();
-    private WalletService walletService;
 
     public UserService() {
-        this.walletService = new WalletService();
     }
 
     public void register(String userName, String password) {
         UUID id = UUID.randomUUID();
         User user = new User(id, userName, password);
         userList.add(user);
-        walletService.getWallet(id);
     }
 
     public Optional<User> getUserByLoginAndPassword(String login, String password) {
@@ -43,13 +40,10 @@ public class UserService {
                 .findFirst();
     }
 
-    public Wallet getUserWallet(UUID userId) {
-        return walletService.getWallet(userId);
-    }
-
     public void saveUsersToFile(String filePath) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(userList);
+            System.out.println("Количество сохраненных пользователей: " + userList.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -61,6 +55,7 @@ public class UserService {
         if (file.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
                 userList = (List<User>) ois.readObject();
+                System.out.println("Количество загруженных пользователей: " + userList.size());
             } catch (IOException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

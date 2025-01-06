@@ -32,7 +32,7 @@ public class FinanceApp {
         System.out.println("2. Авторизация");
         System.out.println("3. Выйти из программы");
 
-        isActive = true;
+        boolean isActive = true;
 
         while (isActive) {
             int choice = getIntInput();
@@ -49,7 +49,9 @@ public class FinanceApp {
                     break;
                 default:
                     System.out.println("Неверный выбор. Пожалуйста, попробуйте снова.");
+                    continue;
             }
+            break;
         }
     }
 
@@ -77,6 +79,15 @@ public class FinanceApp {
         if (userOpt.isPresent()) {
             System.out.println("Пользователь " + userName + " успешно авторизован.");
             userId = userOpt.get().getId();
+            Optional<Wallet> walletOpt = walletService.getWalletByUserId(userId);
+
+            if (walletOpt.isPresent()) {
+                System.out.println("Кошелек найднен.");
+            } else {
+                Wallet wallet = new Wallet(userId);
+                walletService.addWallet(wallet);
+                System.out.println("Кошелек создан.");
+            }
             financialManagement();
         } else {
             System.out.println("Пользователь не найден.");
@@ -92,7 +103,6 @@ public class FinanceApp {
         // Сохранение пользователей перед выходом
         userService.saveUsersToFile("users.ser");
         System.out.println("Пользователи сохранены.");
-        isActive = false;
     }
 
     private void financialManagement() {
@@ -104,7 +114,9 @@ public class FinanceApp {
         System.out.println("6. Главное меню");
         System.out.println("7. Выйти из программы");
 
-        while (true) {
+        boolean isActive = true;
+
+        while (isActive) {
             int choice = getIntInput();
 
             switch (choice) {
@@ -125,13 +137,15 @@ public class FinanceApp {
                     break;
                 case 6:
                     mainMenu();
-                    return;
+                    break;
                 case 7:
                     exit();
-                    return;
+                    break;
                 default:
                     System.out.println("Неверный выбор. Пожалуйста, попробуйте снова.");
+                    continue;
             }
+            break;
         }
     }
 
@@ -161,10 +175,17 @@ public class FinanceApp {
             break;
         }
 
-        Wallet wallet = userService.getUserWallet(userId);
-        Transaction transaction = new Transaction(UUID.randomUUID(), category, amount, isIncome);
-        wallet.addTransaction(transaction);
-        System.out.println("Транзакция добавлена.");
+        Optional<Wallet> walletOpt = walletService.getWalletByUserId(userId);
+
+        if (walletOpt.isPresent()) {
+            Wallet wallet = walletOpt.get();
+            Transaction transaction = new Transaction(UUID.randomUUID(), category, amount, isIncome);
+            wallet.addTransaction(transaction);
+            System.out.println("Транзакция добавлена.");
+        } else {
+            System.out.println("Кошелек не найден");
+        }
+
         financialManagement();
     }
 
@@ -174,48 +195,80 @@ public class FinanceApp {
         System.out.print("Введите бюджет: ");
         double budget = getDoubleInput();
 
-        Wallet wallet = userService.getUserWallet(userId);
-        wallet.setBudget(category, budget);
-        System.out.println("Бюджет установлен.");
+        Optional<Wallet> walletOpt = walletService.getWalletByUserId(userId);
+
+        if (walletOpt.isPresent()) {
+            Wallet wallet = walletOpt.get();
+            wallet.setBudget(category, budget);
+            System.out.println("Бюджет установлен.");
+        } else {
+            System.out.println("Кошелек не найден");
+        }
+
         financialManagement();
     }
 
     private void showStatistics() {
-        Wallet wallet = userService.getUserWallet(userId);
-        double totalIncome = 0;
-        double totalExpenses = 0;
+        Optional<Wallet> walletOpt = walletService.getWalletByUserId(userId);
 
-        System.out.println("Статистика:");
+        if (walletOpt.isPresent()) {
+            Wallet wallet = walletOpt.get();
+            double totalIncome = 0;
+            double totalExpenses = 0;
+            System.out.println("Статистика:");
+            // Получаем уникальные категории из транзакций
+            Map<String, Double> incomeByCategory = new HashMap<>();
+            Map<String, Double> expensesByCategory = new HashMap<>();
 
-        // Получаем уникальные категории из транзакций
-        Map<String, Double> incomeByCategory = new HashMap<>();
-        Map<String, Double> expensesByCategory = new HashMap<>();
-
-        for (Transaction transaction : wallet.getTransactions()) {
-            String category = transaction.getCategory();
-            if (transaction.isIncome()) {
-                incomeByCategory.put(category, incomeByCategory.getOrDefault(category, 0.0) + transaction.getAmount());
-            } else {
-                expensesByCategory.put(category, expensesByCategory.getOrDefault(category, 0.0) + transaction.getAmount());
+            for (Transaction transaction : wallet.getTransactions()) {
+                String category = transaction.getCategory();
+                if (transaction.isIncome()) {
+                    incomeByCategory.put(category, incomeByCategory.getOrDefault(category, 0.0) + transaction.getAmount());
+                } else {
+                    expensesByCategory.put(category, expensesByCategory.getOrDefault(category, 0.0) + transaction.getAmount());
+                }
             }
+
+            // Суммируем общий доход
+            totalIncome = incomeByCategory.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+
+            System.out.println("Общий доход: " + totalIncome);
+
+            // Выводим доходы по категориям
+            System.out.println("Доходы по категориям:");
+            for (Map.Entry<String, Double> entry : incomeByCategory.entrySet()) {
+                System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+            }
+
+            // Суммируем общие расходы
+            totalExpenses = expensesByCategory.values().stream()
+                    .mapToDouble(Double::doubleValue)
+                    .sum();
+
+            System.out.println("Общие расходы: " + totalExpenses);
+
+            // Выводим расходы по категориям
+            System.out.println("Расходы по категориям:");
+            for (Map.Entry<String, Double> entry : expensesByCategory.entrySet()) {
+                System.out.println("  " + entry.getKey() + ": " + entry.getValue());
+            }
+
+            // Выводим бюджет по категориям и оставшийся бюджет
+            System.out.println("Бюджет по категориям:");
+            for (Map.Entry<String, Double> entry : wallet.getBudgets().entrySet()) {
+                String category = entry.getKey();
+                double budget = entry.getValue();
+                double spent = expensesByCategory.getOrDefault(category, 0.0);
+                double remainingBudget = budget - spent;
+
+                System.out.println("  " + category + ": " + budget + ", Оставшийся бюджет: " + remainingBudget);
+            }
+        } else {
+            System.out.println("Кошелек не найден");
         }
 
-        // Выводим доходы по категориям
-        System.out.println("Доходы по категориям:");
-        for (Map.Entry<String, Double> entry : incomeByCategory.entrySet()) {
-            System.out.println("  " + entry.getKey() + ": " + entry.getValue());
-            totalIncome += entry.getValue();
-        }
-
-        // Выводим расходы по категориям
-        System.out.println("Расходы по категориям:");
-        for (Map.Entry<String, Double> entry : expensesByCategory.entrySet()) {
-            System.out.println("  " + entry.getKey() + ": " + entry.getValue());
-            totalExpenses += entry.getValue();
-        }
-
-        System.out.println("Общий доход: " + totalIncome);
-        System.out.println("Общие расходы: " + totalExpenses);
         financialManagement();
     }
 
@@ -224,38 +277,44 @@ public class FinanceApp {
         String input = scanner.nextLine();
         String[] categories = input.split(",");
 
-        Wallet wallet = userService.getUserWallet(userId);
-        double totalIncome = 0;
-        double totalExpenses = 0;
+        Optional<Wallet> walletOpt = walletService.getWalletByUserId(userId);
 
-        System.out.println("Статистика по выбранным категориям:");
+        if (walletOpt.isPresent()) {
+            Wallet wallet = walletOpt.get();
+            double totalIncome = 0;
+            double totalExpenses = 0;
+            System.out.println("Статистика по выбранным категориям:");
 
-        for (String category : categories) {
-            category = category.trim(); // Удаляем лишние пробелы
-            String finalCategory = category;
-            double incomeForCategory = wallet.getTransactions().stream()
-                    .filter(t -> t.getCategory().equalsIgnoreCase(finalCategory) && t.isIncome())
-                    .mapToDouble(Transaction::getAmount)
-                    .sum();
+            for (String category : categories) {
+                category = category.trim(); // Удаляем лишние пробелы
+                String finalCategory = category;
+                double incomeForCategory = wallet.getTransactions().stream()
+                        .filter(t -> t.getCategory().equalsIgnoreCase(finalCategory) && t.isIncome())
+                        .mapToDouble(Transaction::getAmount)
+                        .sum();
 
-            double expensesForCategory = wallet.getTransactions().stream()
-                    .filter(t -> t.getCategory().equalsIgnoreCase(finalCategory) && !t.isIncome())
-                    .mapToDouble(Transaction::getAmount)
-                    .sum();
+                double expensesForCategory = wallet.getTransactions().stream()
+                        .filter(t -> t.getCategory().equalsIgnoreCase(finalCategory) && !t.isIncome())
+                        .mapToDouble(Transaction::getAmount)
+                        .sum();
 
-            if (incomeForCategory == 0 && expensesForCategory == 0) {
-                System.out.println("Категория '" + category + "' не найдена.");
-            } else {
-                System.out.println("Категория: " + category);
-                System.out.println("  Доход: " + incomeForCategory);
-                System.out.println("  Расход: " + expensesForCategory);
-                totalIncome += incomeForCategory;
-                totalExpenses += expensesForCategory;
+                if (incomeForCategory == 0 && expensesForCategory == 0) {
+                    System.out.println("Категория '" + category + "' не найдена.");
+                } else {
+                    System.out.println("Категория: " + category);
+                    System.out.println("  Доход: " + incomeForCategory);
+                    System.out.println("  Расход: " + expensesForCategory);
+                    totalIncome += incomeForCategory;
+                    totalExpenses += expensesForCategory;
+                }
             }
+
+            System.out.println("Общий доход по выбранным категориям: " + totalIncome);
+            System.out.println("Общие расходы по выбранным категориям: " + totalExpenses);
+        } else {
+            System.out.println("Кошелек не найден");
         }
 
-        System.out.println("Общий доход по выбранным категориям: " + totalIncome);
-        System.out.println("Общие расходы по выбранным категориям: " + totalExpenses);
         financialManagement();
     }
 
@@ -273,25 +332,38 @@ public class FinanceApp {
         System.out.print("Введите сумму для перевода: ");
         double amount = getDoubleInput();
 
-        Wallet senderWallet = userService.getUserWallet(userId);
-        double senderBalance = senderWallet.getTotalIncome() - senderWallet.getTotalExpenses();
+        Optional<Wallet> senderWalletOpt = walletService.getWalletByUserId(userId);
 
-        if (amount > senderBalance) {
-            System.out.println("Недостаточно средств для перевода.");
-            financialManagement();
-            return;
+        if (senderWalletOpt.isPresent()) {
+            Wallet senderWallet = senderWalletOpt.get();
+            double senderBalance = senderWallet.getTotalIncome() - senderWallet.getTotalExpenses();
+
+            if (amount > senderBalance) {
+                System.out.println("Недостаточно средств для перевода.");
+                financialManagement();
+                return;
+            }
+
+            // Создаем транзакцию для отправителя
+            Transaction senderTransaction = new Transaction(UUID.randomUUID(), "Перевод пользователю " + recipientLogin, amount, false);
+            senderWallet.addTransaction(senderTransaction);
+        } else {
+            System.out.println("Кошелек не найден");
         }
 
-        // Создаем транзакцию для отправителя
-        Transaction senderTransaction = new Transaction(UUID.randomUUID(), "Перевод пользователю " + recipientLogin, amount, false);
-        senderWallet.addTransaction(senderTransaction);
+        Optional<Wallet> recipientWalletOpt = walletService.getWalletByUserId(userId);
 
-        // Создаем транзакцию для получателя
-        Wallet recipientWallet = userService.getUserWallet(recipientOpt.get().getId());
-        Transaction recipientTransaction = new Transaction(UUID.randomUUID(), "Перевод от пользователя " + userService.getUserById(userId).get().getLogin(), amount, true);
-        recipientWallet.addTransaction(recipientTransaction);
+        if (recipientWalletOpt.isPresent()) {
 
-        System.out.println("Перевод успешно выполнен.");
+            // Создаем транзакцию для получателя
+            Wallet recipientWallet = recipientWalletOpt.get();
+            Transaction recipientTransaction = new Transaction(UUID.randomUUID(), "Перевод от пользователя " + userService.getUserById(userId).get().getLogin(), amount, true);
+            recipientWallet.addTransaction(recipientTransaction);
+
+            System.out.println("Перевод успешно выполнен.");
+        } else {
+            System.out.println("Кошелек не найден");
+        }
         financialManagement();
     }
 
