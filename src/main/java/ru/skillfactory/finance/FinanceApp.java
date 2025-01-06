@@ -293,7 +293,7 @@ public class FinanceApp {
             Wallet wallet = walletOpt.get();
             double totalIncome = 0;
             double totalExpenses = 0;
-            System.out.println("Статистика по выбранным категориям:");
+            StringBuilder statistics = new StringBuilder("Статистика по выбранным категориям:\n");
 
             for (String category : categories) {
                 category = category.trim(); // Удаляем лишние пробелы
@@ -309,18 +309,21 @@ public class FinanceApp {
                         .sum();
 
                 if (incomeForCategory == 0 && expensesForCategory == 0) {
-                    System.out.println("Категория '" + category + "' не найдена.");
+                    statistics.append("Категория '").append(category).append("' не найдена.\n");
                 } else {
-                    System.out.println("Категория: " + category);
-                    System.out.println("  Доход: " + incomeForCategory);
-                    System.out.println("  Расход: " + expensesForCategory);
+                    statistics.append("Категория: ").append(category).append("\n");
+                    statistics.append("  Доход: ").append(incomeForCategory).append("\n");
+                    statistics.append("  Расход: ").append(expensesForCategory).append("\n");
                     totalIncome += incomeForCategory;
                     totalExpenses += expensesForCategory;
                 }
             }
 
-            System.out.println("Общий доход по выбранным категориям: " + totalIncome);
-            System.out.println("Общие расходы по выбранным категориям: " + totalExpenses);
+            statistics.append("Общий доход по выбранным категориям: ").append(totalIncome).append("\n");
+            statistics.append("Общие расходы по выбранным категориям: ").append(totalExpenses).append("\n");
+
+            // Сохраняем статистику в файл
+            saveStatisticsToFile(statistics.toString());
         } else {
             System.out.println("Кошелек не найден");
         }
