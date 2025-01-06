@@ -119,9 +119,7 @@ public class FinanceApp {
         System.out.println("6. Главное меню");
         System.out.println("7. Выйти из программы");
 
-        boolean isActive = true;
-
-        while (isActive) {
+        while (true) {
             int choice = getIntInput();
 
             switch (choice) {
