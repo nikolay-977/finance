@@ -14,7 +14,7 @@
 
 - **Клонируйте репозиторий**:
    ```bash
-   git clone https://github.com/ваш_пользователь/ваш_репозиторий.git
+   git clone https://github.com/nikolay-977/finance
 
 ## Как пользоваться сервисом
 
